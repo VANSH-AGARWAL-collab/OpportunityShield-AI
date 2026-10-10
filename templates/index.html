@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="OpportunityShield AI — A Competition-Ready AI Opportunity Investigation Platform powered by SerpApi. Investigate internships, job offers, recruiters, and companies before sharing personal information.">
+  <title>OpportunityShield AI — Forensic Job & Internship Investigation</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="theme-navy">
+  <!-- Application Shell -->
+  <div class="app-layout">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" aria-label="Main Navigation">
+      <div class="sidebar-brand">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="OpportunityShield Logo" class="brand-logo" width="38" height="38">
+        <div class="brand-text">
+          <span class="brand-title">Opportunity<span class="text-teal">Shield</span></span>
+          <span class="brand-tag">AI Investigation Platform</span>
+        </div>
+      </div>
+
+      <div class="sidebar-mission">
+        <div class="mission-pill">
+          <span class="pulse-indicator"></span>
+          <span>SerpApi Hackathon 2026</span>
+        </div>
+        <p class="mission-subtitle">Knowledge & Public Interest Track</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-item active" id="nav-workspace-btn" data-view="workspace">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <span>Investigation Workspace</span>
+        </button>
+
+        <button type="button" class="nav-item" id="nav-benchmarks-btn" data-view="benchmarks">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Benchmark Cases</span>
+          <span class="nav-badge">4</span>
+        </button>
+
+        <button type="button" class="nav-item" id="nav-history-btn" data-view="history">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Past Investigations</span>
+          <span class="nav-badge" id="history-count-badge">0</span>
+        </button>
+
+        <button type="button" class="nav-item" id="nav-guidelines-btn">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span>India Safety Guidelines</span>
+        </button>
+
+        <button type="button" class="nav-item" id="nav-config-btn">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>SerpApi Status & Setup</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="api-status-widget" id="api-status-badge">
+          {% if has_serpapi_key %}
+            <div class="status-indicator status-live">
+              <span class="status-dot"></span>
+              <span class="status-label">SerpApi Live Active</span>
+            </div>
+          {% else %}
+            <div class="status-indicator status-demo" title="Running in high-fidelity demo mode. Click to configure key.">
+              <span class="status-dot"></span>
+              <span class="status-label">Demo Simulation Mode</span>
+            </div>
+          {% endif %}
+          <small class="api-engine-tag">Google Search • News • Jobs</small>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content Area -->
+    <main class="app-main" id="main-content">
+      
+      <!-- Top Bar -->
+      <header class="app-header">
+        <div class="header-breadcrumb">
+          <span class="text-muted">OpportunityShield AI</span>
+          <span class="breadcrumb-sep">/</span>
+          <span id="current-view-title" class="text-highlight">Investigation Workspace</span>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-secondary btn-sm" id="quick-demo-btn">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Try Quick Sample</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-show-guidelines">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>Cybercrime 1930 Info</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View 1: Primary Investigation Workspace -->
+      <section id="view-workspace" class="content-view active">
+        
+        <!-- Hero Statement Banner -->
+        <div class="hero-banner">
+          <div class="hero-content">
+            <div class="hero-tag">
+              <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span>Public Interest Safeguard</span>
+            </div>
+            <h1 class="hero-title">Check the evidence before you trust an opportunity.</h1>
+            <p class="hero-desc">
+              Cross-reference internships, job offers, recruiters, and companies against real-time SerpApi Google Search, Google News, and Google Jobs evidence before sharing personal data or paying upfront deposits.
+            </p>
+          </div>
+        </div>
+
+        <!-- Benchmark Quick Selector Cards -->
+        <div class="benchmark-quick-strip">
+          <div class="strip-header">
+            <span class="strip-title">Try Curated Realistic Scenarios (1-Click Test):</span>
+            <span class="strip-caption">Click to auto-populate and test</span>
+          </div>
+          <div class="benchmark-pill-grid">
+            <button type="button" class="benchmark-pill pill-danger" data-case="apex_scam">
+              <span class="pill-dot"></span>
+              <div class="pill-meta">
+                <span class="pill-name">Laptop Deposit Scam</span>
+                <span class="pill-sub">Apex Tech • ₹2.5k UPI deposit • Telegram</span>
+              </div>
+            </button>
+            <button type="button" class="benchmark-pill pill-warning" data-case="tcs_spoof">
+              <span class="pill-dot"></span>
+              <div class="pill-meta">
+                <span class="pill-name">TCS Domain Spoof</span>
+                <span class="pill-sub">Lookalike domain phishing • Fake HR</span>
+              </div>
+            </button>
+            <button type="button" class="benchmark-pill pill-success" data-case="hasura_legit">
+              <span class="pill-dot"></span>
+              <div class="pill-meta">
+                <span class="pill-name">Legitimate Tech Startup</span>
+                <span class="pill-sub">Hasura • Verified Google Jobs & News</span>
+              </div>
+            </button>
+            <button type="button" class="benchmark-pill pill-neutral" data-case="unindexed_entity">
+              <span class="pill-dot"></span>
+              <div class="pill-meta">
+                <span class="pill-name">Sparse Footprint Studio</span>
+                <span class="pill-sub">NovaSphere Media • Unindexed entity</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Investigation Input Card -->
+        <div class="investigation-card">
+          <div class="card-header-tabs">
+            <div class="tab-group" role="tablist">
+              <button type="button" class="tab-btn active" role="tab" id="tab-paste" aria-selected="true" data-mode="paste">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Paste Offer Letter or Job Text</span>
+              </button>
+              <button type="button" class="tab-btn" role="tab" id="tab-fields" aria-selected="false" data-mode="fields">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                <span>Structured Fields</span>
+              </button>
+            </div>
+            <button type="button" class="btn-text btn-sm" id="btn-clear-input" title="Clear inputs">
+              Clear all
+            </button>
+          </div>
+
+          <form id="investigation-form" class="card-body">
+            
+            <!-- Paste Mode Input -->
+            <div id="mode-paste-container" class="input-mode-panel active">
+              <div class="form-group">
+                <label for="input-job-text" class="form-label">
+                  Paste Job/Internship Text, Email, or WhatsApp/Telegram Offer Notice
+                  <span class="label-hint">Entity extractor will automatically identify company, domain, email, role, and deposit red flags.</span>
+                </label>
+                <textarea 
+                  id="input-job-text" 
+                  name="job_text" 
+                  class="form-control code-font" 
+                  rows="9" 
+                  placeholder="Paste the full job posting, WhatsApp message, email invite, or offer letter here...&#10;&#10;Example:&#10;Company: Apex Tech Solutions&#10;Role: Remote Python Trainee (₹75,000/month)&#10;Contact: hr.apextech@gmail.com, Telegram: @apex_hr_onboarding&#10;Deposit: ₹2,500 refundable laptop security fee required before dispatch..."></textarea>
+              </div>
+            </div>
+
+            <!-- Structured Fields Mode Input -->
+            <div id="mode-fields-container" class="input-mode-panel hidden">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label for="field-company" class="form-label">Company / Organization Name <span class="text-danger">*</span></label>
+                  <input type="text" id="field-company" class="form-control" placeholder="e.g. Tata Consultancy Services, Hasura">
+                </div>
+                <div class="form-group">
+                  <label for="field-domain" class="form-label">Company Website / Domain</label>
+                  <input type="text" id="field-domain" class="form-control" placeholder="e.g. hasura.io or tcs.com">
+                </div>
+                <div class="form-group">
+                  <label for="field-role" class="form-label">Job / Internship Role</label>
+                  <input type="text" id="field-role" class="form-control" placeholder="e.g. Software Engineer Intern, Data Entry Trainee">
+                </div>
+                <div class="form-group">
+                  <label for="field-email" class="form-label">Recruiter Email Address</label>
+                  <input type="email" id="field-email" class="form-control" placeholder="e.g. talent@company.com or hr@gmail.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Entity Extraction Chip Bar -->
+            <div class="extraction-preview-strip" id="extraction-strip" aria-live="polite">
+              <div class="extraction-strip-header">
+                <span class="preview-title">Real-Time Extraction Signals:</span>
+                <span class="preview-status" id="extraction-status-text">Ready for analysis</span>
+              </div>
+              <div class="chip-container" id="extraction-chips">
+                <span class="chip chip-empty">Entities will appear here as you type or paste...</span>
+              </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="form-actions">
+              <input type="hidden" id="selected-benchmark-id" value="">
+              <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-investigation">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span id="btn-submit-text">Launch Multi-Source Investigation</span>
+              </button>
+              <div class="search-guarantee">
+                <svg class="icon-xs text-teal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                <span>Zero fake reviews. Transparent SerpApi citations. No paid LLM required.</span>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Investigation Live Progress Animation Box (Multi-Step Agentic Tracker) -->
+        <div id="investigation-progress-box" class="progress-box hidden" aria-live="assertive">
+          <div class="progress-header">
+            <div class="spinner-sonar"></div>
+            <div class="progress-meta">
+              <h3 class="progress-title">Forensic AI Investigation In Progress</h3>
+              <p class="progress-sub" id="current-step-detail">Initiating multi-engine search across SerpApi...</p>
+            </div>
+          </div>
+          <div class="agent-steps-grid">
+            <div class="step-item active" id="step-1">
+              <div class="step-num">1</div>
+              <div class="step-info">
+                <span class="step-label">Entity & Red-Flag Extraction</span>
+                <span class="step-desc">Parsing domains, emails & fee triggers</span>
+              </div>
+            </div>
+            <div class="step-item" id="step-2">
+              <div class="step-num">2</div>
+              <div class="step-info">
+                <span class="step-label">Google Search (Official Footprint)</span>
+                <span class="step-desc">Correlating official corporate presence</span>
+              </div>
+            </div>
+            <div class="step-item" id="step-3">
+              <div class="step-num">3</div>
+              <div class="step-info">
+                <span class="step-label">Google Search (Scam Disclosures)</span>
+                <span class="step-desc">Checking consumer complaints & forums</span>
+              </div>
+            </div>
+            <div class="step-item" id="step-4">
+              <div class="step-num">4</div>
+              <div class="step-info">
+                <span class="step-label">Google News & Press Intelligence</span>
+                <span class="step-desc">Investigating public media sentiment</span>
+              </div>
+            </div>
+            <div class="step-item" id="step-5">
+              <div class="step-num">5</div>
+              <div class="step-info">
+                <span class="step-label">Google Jobs Role Benchmarking</span>
+                <span class="step-desc">Comparing market listings in India</span>
+              </div>
+            </div>
+            <div class="step-item" id="step-6">
+              <div class="step-num">6</div>
+              <div class="step-info">
+                <span class="step-label">Evidentiary Synthesis & Heuristics</span>
+                <span class="step-desc">Generating transparent risk report</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Container for Investigation Report -->
+        <div id="report-view-container" class="report-container hidden">
+          <!-- Populated dynamically by report.js -->
+        </div>
+
+      </section>
+
+      <!-- View 2: Curated Benchmarks Catalog -->
+      <section id="view-benchmarks" class="content-view hidden">
+        <div class="view-header">
+          <h2>Curated Benchmark Cases</h2>
+          <p class="text-muted">High-fidelity scenarios designed to test detection across different threat archetypes facing Indian applicants.</p>
+        </div>
+        <div class="benchmarks-full-grid" id="benchmarks-list-container">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- View 3: Investigation History -->
+      <section id="view-history" class="content-view hidden">
+        <div class="view-header history-header">
+          <div>
+            <h2>Investigation History</h2>
+            <p class="text-muted">Past reports stored in SQLite database. Revisit, compare, or export anytime.</p>
+          </div>
+          <button type="button" class="btn btn-outline-danger btn-sm" id="btn-clear-all-history">
+            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>Clear History</span>
+          </button>
+        </div>
+        <div class="history-table-card">
+          <div class="table-responsive">
+            <table class="history-table" id="history-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Assessment</th>
+                  <th>Risk Score</th>
+                  <th>Sources</th>
+                  <th>Mode</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-8">Loading history...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Accessible Modal: India Safety Guidelines -->
+  <dialog id="modal-guidelines" class="app-dialog" aria-labelledby="dialog-guidelines-title">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div class="dialog-title-group">
+          <svg class="icon-md text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <h2 id="dialog-guidelines-title">Indian Student & Jobseeker Safety Handbook</h2>
+        </div>
+        <button type="button" class="dialog-close" data-close-dialog aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <div class="alert-box alert-danger">
+          <strong>National Cyber Crime Helpline: 1930</strong>
+          <p>If you have made payments or transferred money to a fraudulent recruiter via UPI/IMPS, call <strong>1930</strong> immediately to freeze the beneficiary account. Lodge complaints at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer" class="link-light">cybercrime.gov.in</a>.</p>
+        </div>
+
+        <div class="guideline-step">
+          <h4>1. Zero-Fee Indian Hiring Rule</h4>
+          <p>Under Ministry of Labour & Employment directives, registered companies and recruitment partners <strong>never charge candidates for interviews, aptitude tests, security deposits, or hardware delivery</strong>. Any request for a refundable deposit is an immediate advance-fee scam.</p>
+        </div>
+
+        <div class="guideline-step">
+          <h4>2. Official Domain Verification</h4>
+          <p>Never rely on email display names. Examine the actual domain after the '@' symbol. Scammers often use free webmail (e.g. <code>@gmail.com</code>) or lookalike typo domains (e.g. <code>@tcs-careers-onboarding.in</code> instead of <code>@tcs.com</code>).</p>
+        </div>
+
+        <div class="guideline-step">
+          <h4>3. Ministry of Corporate Affairs (MCA21) Check</h4>
+          <p>Verify legitimate company existence on the official MCA portal (<code>mca.gov.in</code>). Check company incorporation date, registered office, and active status.</p>
+        </div>
+
+        <div class="guideline-step">
+          <h4>4. Never Share Sensitive Documents Prematurely</h4>
+          <p>Do not upload Aadhaar cards, PAN cards, voter IDs, bank passbook copies, or OTPs before independently verifying the employer via official telephone numbers or campus placement officers.</p>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-primary" data-close-dialog>Understood & Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Accessible Modal: SerpApi Status & Config -->
+  <dialog id="modal-config" class="app-dialog" aria-labelledby="dialog-config-title">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div class="dialog-title-group">
+          <svg class="icon-md text-teal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <h2 id="dialog-config-title">SerpApi Configuration & Engine Status</h2>
+        </div>
+        <button type="button" class="dialog-close" data-close-dialog aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <div class="config-status-card" id="modal-status-summary">
+          <div class="status-summary-row">
+            <span class="text-muted">API Integration Status:</span>
+            <span class="badge" id="modal-api-badge">Checking...</span>
+          </div>
+          <div class="status-summary-row">
+            <span class="text-muted">Server-Side API Key:</span>
+            <code id="modal-api-key-masked">None</code>
+          </div>
+          <div class="status-summary-row">
+            <span class="text-muted">Integrated Engines:</span>
+            <span>Google Search, Google News, Google Jobs</span>
+          </div>
+        </div>
+
+        <div class="setup-instruction-box">
+          <h4>How to Configure SerpApi for Live Searches:</h4>
+          <ol class="setup-steps">
+            <li>Register for a free key at <a href="https://serpapi.com" target="_blank" rel="noopener noreferrer" class="link-teal">serpapi.com</a> (includes 250 free searches/month according to hackathon terms; please verify current account terms).</li>
+            <li>Open the project root directory and edit your <code>.env</code> file:
+              <pre class="code-snippet"><code>SERPAPI_KEY=your_actual_serpapi_key_here</code></pre>
+            </li>
+            <li>Restart the Flask backend application:
+              <pre class="code-snippet"><code>python app.py</code></pre>
+            </li>
+            <li>OpportunityShield AI will automatically detect the live key and switch to real-time queries!</li>
+          </ol>
+        </div>
+
+        <div class="alert-box alert-info">
+          <strong>Security Note:</strong> OpportunityShield AI follows strict security standards. <code>SERPAPI_KEY</code> is maintained strictly on the server-side environment and is never exposed to client-side scripts, network responses, or GitHub repositories.
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-secondary" data-close-dialog>Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- JavaScript Modules -->
+  <script src="{{ url_for('static', filename='js/report.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
